@@ -1,0 +1,60 @@
+import tkinter as tk
+from tkinter import simpledialog, messagebox
+import random
+import threading
+import time
+
+class RNGApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+
+        # Set window properties
+        self.title("Random Number Generator")
+        self.geometry("300x200")
+        self.configure(bg="white")
+
+        # Number label with an initial font size
+        self.font_size = self.calculate_font_size()
+        self.number_font = ("Arial", self.font_size)
+        self.number_label = tk.Label(self, text="", font=self.number_font, bg="white", fg="black")
+        self.number_label.pack(expand=True, fill=tk.BOTH)
+
+        # Bind the resize event
+        self.bind("<Configure>", self.on_resize)
+
+        # Ask for time interval
+        self.ask_interval()
+
+    def ask_interval(self):
+        try:
+            self.interval = simpledialog.askfloat("Input", "Enter the time interval (in seconds):", parent=self)
+            if self.interval is not None:
+                self.update_number()
+        except ValueError:
+            messagebox.showerror("Error", "Please enter a valid number.")
+            self.ask_interval()
+
+    def update_number(self):
+        def run():
+            while True:
+                self.number_label.config(text=str(random.randint(1, 100)))
+                time.sleep(self.interval)
+
+        threading.Thread(target=run, daemon=True).start()
+
+    def on_resize(self, event):
+        new_font_size = self.calculate_font_size()
+        if new_font_size != self.font_size:
+            self.font_size = new_font_size
+            self.number_font = ("Arial", self.font_size)
+            self.number_label.config(font=self.number_font)
+
+    def calculate_font_size(self):
+        width, height = self.winfo_width(), self.winfo_height()
+        # Use the smaller of the two dimensions to determine font size
+        size_based_on_dimension = min(width, height)
+        return int(size_based_on_dimension * 0.8)  # Adjust the multiplier as needed
+
+if __name__ == "__main__":
+    app = RNGApp()
+    app.mainloop()
